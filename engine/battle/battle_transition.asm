@@ -3,7 +3,8 @@ BATTLETRANSITION_CAVE             EQU $01
 BATTLETRANSITION_CAVE_STRONGER    EQU $09
 BATTLETRANSITION_NO_CAVE          EQU $10
 BATTLETRANSITION_NO_CAVE_STRONGER EQU $18
-BATTLETRANSITION_FINISH           EQU $20
+BATTLETRANSITION_SCANLINES           EQU $20
+BATTLETRANSITION_FINISH           EQU $28
 BATTLETRANSITION_END              EQU $80
 
 BATTLETRANSITION_SQUARE EQUS "\"8\"" ; $fe
@@ -184,6 +185,7 @@ BattleTransitionJumptable:
 	dw StartTrainerBattle_SetUpForSpinOutro ; 16
 	dw StartTrainerBattle_SpinToBlack ; 17
 
+
 	; BATTLETRANSITION_NO_CAVE_STRONGER
 	dw StartTrainerBattle_LoadPokeBallGraphics ; 18
 	dw StartTrainerBattle_SetUpBGMap ; 19
@@ -194,8 +196,18 @@ BattleTransitionJumptable:
 	dw StartTrainerBattle_SetUpForRandomScatterOutro ; 1e
 	dw StartTrainerBattle_SpeckleToBlack ; 1f
 
+	; BATTLETRANSITION_SCANLINES
+	dw StartTrainerBattle_LoadPokeBallGraphics ; 20
+	dw StartTrainerBattle_SetUpBGMap ; 21
+	dw StartTrainerBattle_Flash ; 22
+	dw StartTrainerBattle_Flash ; 23
+	dw StartTrainerBattle_Flash ; 24
+	dw StartTrainerBattle_NextScene ; 25
+	dw StartTrainerBattle_SetUpForScanlineOutro ; 26
+	dw StartTrainerBattle_DoScanlines ; 27
+
 	; BATTLETRANSITION_FINISH
-	dw StartTrainerBattle_Finish ; 20
+	dw StartTrainerBattle_Finish ; 28
 
 ; transition animations
 	const_def
@@ -203,6 +215,7 @@ BattleTransitionJumptable:
 	const TRANS_CAVE_STRONGER
 	const TRANS_NO_CAVE
 	const TRANS_NO_CAVE_STRONGER
+	const TRANS_SCANLINES
 
 ; transition animation bits
 TRANS_STRONGER_F EQU 0 ; bit set in TRANS_CAVE_STRONGER and TRANS_NO_CAVE_STRONGER
@@ -211,6 +224,11 @@ TRANS_NO_CAVE_F EQU 1 ; bit set in TRANS_NO_CAVE and TRANS_NO_CAVE_STRONGER
 StartTrainerBattle_DetermineWhichAnimation:
 ; The screen flashes a different number of times depending on the level of
 ; your lead Pokemon relative to the opponent's.
+	;;;; force SW97 ;;;;
+	ld a, BATTLETRANSITION_SCANLINES
+	ld [wJumptableIndex], a
+	ret
+	;;;;;;;;;;;;;;;;;;;;
 ; fixed
 	ld a, [wOtherTrainerClass]
 	and a
@@ -263,7 +281,54 @@ StartTrainerBattle_DetermineWhichAnimation:
 	db BATTLETRANSITION_CAVE_STRONGER
 	db BATTLETRANSITION_NO_CAVE
 	db BATTLETRANSITION_NO_CAVE_STRONGER
+	db BATTLETRANSITION_SCANLINES
 
+StartTrainerBattle_SetUpForScanlineOutro:	; SW97 transition
+	call StartTrainerBattle_NextScene
+	ld a, LOW(rSCX)
+	ldh [hLCDCPointer], a
+	xor a
+	ld [wcf64], a
+	call .SetUpScanlineStuff
+	ret
+.SetUpScanlineStuff:
+	ld hl, wLYOverrides
+	xor a
+	ld c, $90
+.keep_clearing
+	ld [hl+], a
+	dec c
+	jr nz, .keep_clearing
+	ret
+
+StartTrainerBattle_DoScanlines:		; SW97 transition
+	ld hl, wcf64
+	ld a, [hl]
+	cp a, $50	; maximum value
+	jr nc, .finished
+	inc [hl]
+	ld e, a
+	xor $FF
+	inc a
+	ld d, a
+	call .split_even_odd
+	ret
+.finished
+	ld a, BATTLETRANSITION_END
+	ld [wJumptableIndex], a
+	ret
+
+.split_even_odd
+	ld hl, wLYOverrides
+	ld c, $48
+.continue_split_even_odd
+	ld [hl], e
+	inc hl
+	ld [hl], d
+	inc hl
+	dec c
+	jr nz, .continue_split_even_odd
+	ret
 StartTrainerBattle_Finish:
 	call ClearSprites
 	ld a, BATTLETRANSITION_END
