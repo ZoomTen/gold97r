@@ -1191,7 +1191,7 @@ SpriteAnimOAMData:
 .OAMData_IntroAerodactyl1:
 ; These OAM sprite definitions, with the vtile offset $60 from SpriteAnimOAMData,
 ; correspond to unused Aerodactyl graphics in pokegold-spaceworld's gfx/intro/water_pokemon.png.
-	db 10
+	db 12
 	dbsprite -2, -2,  0,  4, $00, PAL_OW_GREEN
 	dbsprite -1, -2,  0,  4, $01, PAL_OW_GREEN
 	dbsprite  0, -2,  0,  4, $02, PAL_OW_GREEN
@@ -1199,6 +1199,8 @@ SpriteAnimOAMData:
 	dbsprite -2, -1,  0,  4, $04, PAL_OW_GREEN
 	dbsprite -1, -1,  0,  4, $05, PAL_OW_GREEN
 	dbsprite  0, -1,  0,  4, $06, PAL_OW_GREEN
+	dbsprite  1, -1,  0,  4, $07, PAL_OW_GREEN
 	dbsprite -2,  0,  0,  4, $08, PAL_OW_GREEN
 	dbsprite -1,  0,  0,  4, $09, PAL_OW_GREEN
 	dbsprite  0,  0,  0,  4, $0a, PAL_OW_GREEN
+	dbsprite  1,  0,  0,  4, $0b, PAL_OW_GREEN
